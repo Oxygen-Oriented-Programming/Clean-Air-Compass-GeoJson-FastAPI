@@ -9,7 +9,7 @@ import json
 from dotenv import load_dotenv
 import os
 import re
-from sklearn.neighbors import KNeighborsRegressor
+# from sklearn.neighbors import KNeighborsRegressor
 from shapely.geometry import Point
 from shapely.geometry import mapping
 import numpy as np
@@ -269,6 +269,89 @@ def calculate_total_bounds(sensor_data):
     lats = [d['latitude'] for d in sensor_data]
     return [min(lons), min(lats), max(lons), max(lats)]
 
+# def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
+#     X = np.array([[d['longitude'], d['latitude']] for d in sensor_data])
+#     Z = np.array([d['pm2.5'] for d in sensor_data])
+
+#     bounds = calculate_total_bounds(sensor_data)
+#     bounds_obj = [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
+
+#     x_min, x_max = X[:, 0].min() - 0.01, X[:, 0].max() + 0.01
+#     y_min, y_max = X[:, 1].min() - 0.01, X[:, 1].max() + 0.01
+#     grid_x, grid_y = np.mgrid[x_min:x_max:100j, y_min:y_max:100j]
+
+#     grid_x = grid_x.flatten()
+#     grid_y = grid_y.flatten()
+
+#     if len(Z) >= 5:
+#         neighbors = 5
+#     else:
+#         neighbors = len(Z)
+
+#     knn = KNeighborsRegressor(n_neighbors=neighbors, weights='distance')
+#     knn.fit(X, Z)
+#     interpolated_values = knn.predict(np.column_stack((grid_x, grid_y)))
+
+#     features = []
+#     for i in range(interpolated_values.shape[0]):
+#         polygon = [
+#             [grid_x[i], grid_y[i]],
+#             [grid_x[i] + 0.01, grid_y[i]],
+#             [grid_x[i] + 0.01, grid_y[i] + 0.01],
+#             [grid_x[i], grid_y[i] + 0.01],
+#             [grid_x[i], grid_y[i]]
+#         ]
+#         value = round(interpolated_values[i], 1) if np.isfinite(interpolated_values[i]) else None
+#         features.append({
+#             "type": "Feature",
+#             "geometry": {
+#                 "type": "Polygon",
+#                 "coordinates": [polygon]
+#             },
+#             "properties": {
+#                 "pm2.5": value
+#             }
+#         })
+
+#     center_point = [np.mean(X[:, 0]), np.mean(X[:, 1])]
+
+#     points_features = [{"type": "Feature",
+#                         "geometry": mapping(d['geometry']),
+#                         "properties": {k: v for k, v in d.items() if k != 'geometry'}}
+#                        for d in sensor_data]
+
+#     geojson = {
+#         "type": "FeatureCollection",
+#         "features": features,
+#         "points": points_features,
+#         "center_point": center_point,
+#         "expanded_search": expanded_search,
+#         "bounds": bounds_obj
+#     }
+
+#     return geojson
+def euclidean_distance(p1, p2):
+    return np.sqrt(np.sum((np.array(p1) - np.array(p2))**2))
+
+def knn_regression(X, Z, query_points, k=5, weights='distance'):
+    predictions = []
+    for query in query_points:
+        distances = [euclidean_distance(query, x) for x in X]
+        sorted_indices = np.argsort(distances)
+        neighbors = sorted_indices[:k]
+        distances = np.array([distances[i] for i in neighbors])
+        values = np.array([Z[i] for i in neighbors])
+
+        if weights == 'distance':
+            weights = 1 / distances
+            weights[~np.isfinite(weights)] = 1.0
+            prediction = np.sum(values * weights) / np.sum(weights)
+        else:
+            prediction = np.mean(values)
+
+        predictions.append(prediction)
+
+    return np.array(predictions)
 def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
     X = np.array([[d['longitude'], d['latitude']] for d in sensor_data])
     Z = np.array([d['pm2.5'] for d in sensor_data])
@@ -288,9 +371,8 @@ def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
     else:
         neighbors = len(Z)
 
-    knn = KNeighborsRegressor(n_neighbors=neighbors, weights='distance')
-    knn.fit(X, Z)
-    interpolated_values = knn.predict(np.column_stack((grid_x, grid_y)))
+    query_points = np.column_stack((grid_x, grid_y))
+    interpolated_values = knn_regression(X, Z, query_points, k=neighbors, weights='distance')
 
     features = []
     for i in range(interpolated_values.shape[0]):
