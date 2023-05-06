@@ -5,3 +5,4 @@ __pycache__
 .spaceignore
 SpaceFile
 .idea
+.vercel
