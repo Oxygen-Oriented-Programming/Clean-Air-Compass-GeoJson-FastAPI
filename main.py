@@ -1,19 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
-# import pandas as pd
-# import geopandas as gpd
 import requests
 import time
 import json
 from dotenv import load_dotenv
 import os
 import re
-# from sklearn.neighbors import KNeighborsRegressor
 from shapely.geometry import Point
 from shapely.geometry import mapping
-import numpy as np
+# import numpy as np
 import functools
+import math
 
 app = FastAPI()
 
@@ -135,32 +133,6 @@ def get_sensors_bbox_response(nwlong: float, nwlat: float, selong: float, selat:
     return json.loads(response.text)
 
 
-
-# def parse_sensors_bbox_response(response_object) -> gpd.GeoDataFrame:
-#     data = response_object
-#     flat_dicts = []
-#     for sensor in data['data']:
-#         flat_dict = {
-#             'sensor_index': sensor[0],
-#             'name': sensor[1],
-#             'latitude': sensor[2],
-#             'longitude': sensor[3],
-#             'altitude': sensor[4],
-#             'pm1.0': sensor[5],
-#             'pm2.5': sensor[6],
-#             'pm10.0': sensor[7],
-#             'pm2.5_10minute': sensor[8],
-#             'pm2.5_30minute': sensor[9],
-#             'pm2.5_60minute': sensor[10]
-#         }
-#         flat_dicts.append(flat_dict)
-
-#     sensor_df = pd.DataFrame(flat_dicts)
-#     sensor_gdf = gpd.GeoDataFrame(sensor_df, geometry=gpd.points_from_xy(
-#         sensor_df.longitude, sensor_df.latitude))
-
-#     return sensor_gdf
-
 def parse_sensors_bbox_response(response_object):
     data = response_object
     geo_data = []
@@ -184,198 +156,58 @@ def parse_sensors_bbox_response(response_object):
     return geo_data
 
 
-
-
-# def make_interpolated_polygons(sensor_gdf, expanded_search: bool = False):
-#     # Extract the X and Y coordinates of the sensor points
-#     X = sensor_gdf[["longitude", "latitude"]].values
-#     Z = sensor_gdf["pm2.5"].values
-
-#     # extract the bounds object from the dataframe to use for setting zoom level
-#     bounds = sensor_gdf.total_bounds
-#     bounds_obj = [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
-    
-#     # Create a grid of points to interpolate the air pollution values to
-#     x_min, x_max = X[:, 0].min() - 0.01, X[:, 0].max() + 0.01
-#     y_min, y_max = X[:, 1].min() - 0.01, X[:, 1].max() + 0.01
-#     grid_x, grid_y = np.mgrid[x_min:x_max:100j, y_min:y_max:100j]
-
-#     # Flatten the grid_x and grid_y arrays
-#     grid_x = grid_x.flatten()
-#     grid_y = grid_y.flatten()
-
-#     # set neighbors
-    
-#     if len(Z) >= 5:
-#       neighbors = 5
-    
-#     else:
-#       neighbors = len(Z)
-    
-#     # Create a KNeighborsRegressor instance
-#     knn = KNeighborsRegressor(n_neighbors=neighbors, weights='distance')
-
-#     # Fit the model to the sensor data
-#     knn.fit(X, Z)
-
-#     # Use the predict method to interpolate values for the grid points
-#     interpolated_values = knn.predict(np.column_stack((grid_x, grid_y)))
-
-#     # Convert the interpolated_values array into a list of polygon features
-#     features = []
-#     for i in range(interpolated_values.shape[0]):
-#         polygon = [
-#             [grid_x[i], grid_y[i]],
-#             [grid_x[i] + 0.01, grid_y[i]],
-#             [grid_x[i] + 0.01, grid_y[i] + 0.01],
-#             [grid_x[i], grid_y[i] + 0.01],
-#             [grid_x[i], grid_y[i]]
-#         ]
-#         value = round(interpolated_values[i], 1) if np.isfinite(interpolated_values[i]) else None
-#         features.append({
-#             "type": "Feature",
-#             "geometry": {
-#                 "type": "Polygon",
-#                 "coordinates": [polygon]
-#             },
-#             "properties": {
-#                 "pm2.5": value
-#             }
-#         })
-
-#     # get the center point of the dataset to assist in centering the map
-#     center_point = [np.mean(X[:, 0]), np.mean(X[:, 1])]
-    
-#     # also make the geojson object for just the sensor points so those can be returned back too
-    
-#     points = json.loads(sensor_gdf.to_json())
-#     points_features = points['features']
-
-#     # Create a GeoJSON object that can be displayed on a React Leaflet map
-#     geojson = {
-#         "type": "FeatureCollection",
-#         "features": features,
-#         "points": points_features,
-#         "center_point": center_point,
-#         "expanded_search": expanded_search,
-#         "bounds": bounds_obj
-        
-#     }
-    
-#     return geojson
-
 def calculate_total_bounds(sensor_data):
     lons = [d['longitude'] for d in sensor_data]
     lats = [d['latitude'] for d in sensor_data]
     return [min(lons), min(lats), max(lons), max(lats)]
 
-# def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
-#     X = np.array([[d['longitude'], d['latitude']] for d in sensor_data])
-#     Z = np.array([d['pm2.5'] for d in sensor_data])
-
-#     bounds = calculate_total_bounds(sensor_data)
-#     bounds_obj = [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
-
-#     x_min, x_max = X[:, 0].min() - 0.01, X[:, 0].max() + 0.01
-#     y_min, y_max = X[:, 1].min() - 0.01, X[:, 1].max() + 0.01
-#     grid_x, grid_y = np.mgrid[x_min:x_max:100j, y_min:y_max:100j]
-
-#     grid_x = grid_x.flatten()
-#     grid_y = grid_y.flatten()
-
-#     if len(Z) >= 5:
-#         neighbors = 5
-#     else:
-#         neighbors = len(Z)
-
-#     knn = KNeighborsRegressor(n_neighbors=neighbors, weights='distance')
-#     knn.fit(X, Z)
-#     interpolated_values = knn.predict(np.column_stack((grid_x, grid_y)))
-
-#     features = []
-#     for i in range(interpolated_values.shape[0]):
-#         polygon = [
-#             [grid_x[i], grid_y[i]],
-#             [grid_x[i] + 0.01, grid_y[i]],
-#             [grid_x[i] + 0.01, grid_y[i] + 0.01],
-#             [grid_x[i], grid_y[i] + 0.01],
-#             [grid_x[i], grid_y[i]]
-#         ]
-#         value = round(interpolated_values[i], 1) if np.isfinite(interpolated_values[i]) else None
-#         features.append({
-#             "type": "Feature",
-#             "geometry": {
-#                 "type": "Polygon",
-#                 "coordinates": [polygon]
-#             },
-#             "properties": {
-#                 "pm2.5": value
-#             }
-#         })
-
-#     center_point = [np.mean(X[:, 0]), np.mean(X[:, 1])]
-
-#     points_features = [{"type": "Feature",
-#                         "geometry": mapping(d['geometry']),
-#                         "properties": {k: v for k, v in d.items() if k != 'geometry'}}
-#                        for d in sensor_data]
-
-#     geojson = {
-#         "type": "FeatureCollection",
-#         "features": features,
-#         "points": points_features,
-#         "center_point": center_point,
-#         "expanded_search": expanded_search,
-#         "bounds": bounds_obj
-#     }
-
-#     return geojson
 def euclidean_distance(p1, p2):
-    return np.sqrt(np.sum((np.array(p1) - np.array(p2))**2))
+    return math.sqrt(sum([math.pow(a - b, 2) for a, b in zip(p1, p2)]))
 
 def knn_regression(X, Z, query_points, k=5, weights='distance'):
     predictions = []
     for query in query_points:
         distances = [euclidean_distance(query, x) for x in X]
-        sorted_indices = np.argsort(distances)
+        sorted_indices = sorted(range(len(distances)), key=lambda i: distances[i])
         neighbors = sorted_indices[:k]
-        distances = np.array([distances[i] for i in neighbors])
-        values = np.array([Z[i] for i in neighbors])
+        distances = [distances[i] for i in neighbors]
+        values = [Z[i] for i in neighbors]
 
         if weights == 'distance':
-            weights = 1 / distances
-            weights[~np.isfinite(weights)] = 1.0
-            prediction = np.sum(values * weights) / np.sum(weights)
+            weights = [1 / d if d != 0 else 1.0 for d in distances]
+            prediction = sum(v * w for v, w in zip(values, weights)) / sum(weights)
         else:
-            prediction = np.mean(values)
+            prediction = sum(values) / len(values)
 
         predictions.append(prediction)
 
-    return np.array(predictions)
+    return predictions
 def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
-    X = np.array([[d['longitude'], d['latitude']] for d in sensor_data])
-    Z = np.array([d['pm2.5'] for d in sensor_data])
+    X = [[d['longitude'], d['latitude']] for d in sensor_data]
+    Z = [d['pm2.5'] for d in sensor_data]
 
     bounds = calculate_total_bounds(sensor_data)
     bounds_obj = [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
 
-    x_min, x_max = X[:, 0].min() - 0.01, X[:, 0].max() + 0.01
-    y_min, y_max = X[:, 1].min() - 0.01, X[:, 1].max() + 0.01
-    grid_x, grid_y = np.mgrid[x_min:x_max:100j, y_min:y_max:100j]
+    x_min, x_max = min(x[0] for x in X) - 0.01, max(x[0] for x in X) + 0.01
+    y_min, y_max = min(x[1] for x in X) - 0.01, max(x[1] for x in X) + 0.01
 
-    grid_x = grid_x.flatten()
-    grid_y = grid_y.flatten()
+    grid_x = [x_min + i * (x_max - x_min) / 99 for i in range(100)]
+    grid_y = [y_min + i * (y_max - y_min) / 99 for i in range(100)]
+
+    grid_x = [x for x in grid_x for _ in range(100)]
+    grid_y = grid_y * 100
 
     if len(Z) >= 5:
         neighbors = 5
     else:
         neighbors = len(Z)
 
-    query_points = np.column_stack((grid_x, grid_y))
+    query_points = [[grid_x[i], grid_y[i]] for i in range(len(grid_x))]
     interpolated_values = knn_regression(X, Z, query_points, k=neighbors, weights='distance')
 
     features = []
-    for i in range(interpolated_values.shape[0]):
+    for i in range(len(interpolated_values)):
         polygon = [
             [grid_x[i], grid_y[i]],
             [grid_x[i] + 0.01, grid_y[i]],
@@ -383,7 +215,7 @@ def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
             [grid_x[i], grid_y[i] + 0.01],
             [grid_x[i], grid_y[i]]
         ]
-        value = round(interpolated_values[i], 1) if np.isfinite(interpolated_values[i]) else None
+        value = round(interpolated_values[i], 1) if interpolated_values[i] != float('inf') and interpolated_values[i] != float('-inf') else None
         features.append({
             "type": "Feature",
             "geometry": {
@@ -395,7 +227,7 @@ def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
             }
         })
 
-    center_point = [np.mean(X[:, 0]), np.mean(X[:, 1])]
+    center_point = [sum(x[0] for x in X) / len(X), sum(x[1] for x in X) / len(X)]
 
     points_features = [{"type": "Feature",
                         "geometry": mapping(d['geometry']),
@@ -412,7 +244,6 @@ def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
     }
 
     return geojson
-
 @app.get("/points/{location}")
 async def get_map(location: str):
   
