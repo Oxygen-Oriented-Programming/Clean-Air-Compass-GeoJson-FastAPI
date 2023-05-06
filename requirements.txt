@@ -7,7 +7,6 @@ click-plugins==1.1.1
 cligj==0.7.2
 fastapi==0.95.1
 Fiona==1.9.3
-geopandas==0.12.2
 h11==0.14.0
 idna==3.4
 joblib==1.2.0
