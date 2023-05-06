@@ -19,3 +19,11 @@ The API conducts the following steps:
 2. Install all dependencies by running `pip install -r requirements.txt` in the console
 3. Create your own environment file where you set the values for your own Location IQ API key (`LOC_IQ_KEY`) and Purple Air API key (`API_KEY`) respectively.
 4. Run the API server locally using `uvicorn main:app --reload`
+
+## Changes made to achieve serverless deployment
+
+- Removed GeoPandas Numpy and Sklearn dependancies
+
+- Used custom KNN function
+- Used list comprehension instead of numpy
+- Used Shapely insetead of Geopandas
