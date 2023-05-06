@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
-import pandas as pd
+# import pandas as pd
 import geopandas as gpd
 import requests
 import time
@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import os
 import re
 from sklearn.neighbors import KNeighborsRegressor
+from shapely.geometry import Point
 import numpy as np
 import functools
 
@@ -134,11 +135,36 @@ def get_sensors_bbox_response(nwlong: float, nwlat: float, selong: float, selat:
 
 
 
+# def parse_sensors_bbox_response(response_object) -> gpd.GeoDataFrame:
+#     data = response_object
+#     flat_dicts = []
+#     for sensor in data['data']:
+#         flat_dict = {
+#             'sensor_index': sensor[0],
+#             'name': sensor[1],
+#             'latitude': sensor[2],
+#             'longitude': sensor[3],
+#             'altitude': sensor[4],
+#             'pm1.0': sensor[5],
+#             'pm2.5': sensor[6],
+#             'pm10.0': sensor[7],
+#             'pm2.5_10minute': sensor[8],
+#             'pm2.5_30minute': sensor[9],
+#             'pm2.5_60minute': sensor[10]
+#         }
+#         flat_dicts.append(flat_dict)
+
+#     sensor_df = pd.DataFrame(flat_dicts)
+#     sensor_gdf = gpd.GeoDataFrame(sensor_df, geometry=gpd.points_from_xy(
+#         sensor_df.longitude, sensor_df.latitude))
+
+#     return sensor_gdf
+
 def parse_sensors_bbox_response(response_object) -> gpd.GeoDataFrame:
     data = response_object
-    flat_dicts = []
+    geo_data = []
     for sensor in data['data']:
-        flat_dict = {
+        geo_dict = {
             'sensor_index': sensor[0],
             'name': sensor[1],
             'latitude': sensor[2],
@@ -149,13 +175,12 @@ def parse_sensors_bbox_response(response_object) -> gpd.GeoDataFrame:
             'pm10.0': sensor[7],
             'pm2.5_10minute': sensor[8],
             'pm2.5_30minute': sensor[9],
-            'pm2.5_60minute': sensor[10]
+            'pm2.5_60minute': sensor[10],
+            'geometry': Point(sensor[3], sensor[2])  # Create a Point geometry using longitude and latitude
         }
-        flat_dicts.append(flat_dict)
+        geo_data.append(geo_dict)
 
-    sensor_df = pd.DataFrame(flat_dicts)
-    sensor_gdf = gpd.GeoDataFrame(sensor_df, geometry=gpd.points_from_xy(
-        sensor_df.longitude, sensor_df.latitude))
+    sensor_gdf = gpd.GeoDataFrame(geo_data)
 
     return sensor_gdf
 
