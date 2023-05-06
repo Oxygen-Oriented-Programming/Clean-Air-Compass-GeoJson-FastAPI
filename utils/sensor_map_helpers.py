@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import os
 import re
 from sklearn.neighbors import KNeighborsRegressor
-from scipy.interpolate import griddata
 import numpy as np
 import functools
 
