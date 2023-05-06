@@ -9,7 +9,6 @@ import os
 import re
 from shapely.geometry import Point
 from shapely.geometry import mapping
-# import numpy as np
 import functools
 import math
 
