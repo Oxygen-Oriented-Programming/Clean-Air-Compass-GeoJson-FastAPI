@@ -23,7 +23,6 @@ The API conducts the following steps:
 ## Changes made to achieve serverless deployment
 
 - Removed GeoPandas Numpy and Sklearn dependancies
-
 - Used custom KNN function
 - Used list comprehension instead of numpy
 - Used Shapely insetead of Geopandas
