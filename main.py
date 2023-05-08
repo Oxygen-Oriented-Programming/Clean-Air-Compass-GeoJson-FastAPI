@@ -83,10 +83,10 @@ def request_location_api(query: str, factor: int = 0):
         'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
     }
     response = requests.get(url, params=data, headers=headers)
-    data = json.loads(response.text)
+    res_data = json.loads(response.text)
     
     if data != {'error': 'Unable to geocode'}:
-        bounding_box = data[0]['boundingbox']
+        bounding_box = res_data[0]['boundingbox']
         bbox = {
             'min_lat' : float(bounding_box[0]),
             'max_lat' : float(bounding_box[1]),
