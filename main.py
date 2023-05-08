@@ -64,7 +64,7 @@ def is_postal_code(query: str):
 @cache
 def request_location_api(query: str, factor: int = 0):
 
-    url = "https://us1.locationiq.com/v1/search"
+    url = "https://us1.locationiq.com/v1/search/"
     if is_postal_code(query):
         data = {
             'key': LOC_IQ_KEY,
