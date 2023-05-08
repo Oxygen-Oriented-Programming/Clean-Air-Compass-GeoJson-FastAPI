@@ -11,6 +11,7 @@ from shapely.geometry import Point
 from shapely.geometry import mapping
 import functools
 import math
+import urllib.parse
 
 app = FastAPI()
 
@@ -76,9 +77,10 @@ def request_location_api(query: str, factor: int = 0):
     else:
         data = {
             'key': LOC_IQ_KEY,
-            'q': query,
+            'q': urllib.parse.quote(query),
             'format': 'json'
         }
+        print(data)
     headers = {
         'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
     }
@@ -109,7 +111,7 @@ def request_location_api(query: str, factor: int = 0):
     
     else:
         print(response.text)
-        data = {"message":"Please verify that you searched for a location in the United States.", "url": f"{url}"}
+        data = {"message":"Please verify that you searched for a location in the United States."}
         valid_response = False
         return data, valid_response
 
