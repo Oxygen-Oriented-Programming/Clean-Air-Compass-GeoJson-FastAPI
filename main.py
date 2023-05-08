@@ -80,7 +80,7 @@ def request_location_api(query: str, factor: int = 0):
             'format': 'json'
         }
     headers = {
-        'Referer': 'https://www.kaggle.com/'
+        'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
     }
     response = requests.get(url, params=data, headers=headers)
     data = json.loads(response.text)
