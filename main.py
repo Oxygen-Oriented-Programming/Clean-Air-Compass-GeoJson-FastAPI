@@ -109,9 +109,9 @@ def request_location_api(query: str, factor: int = 0):
     
     else:
         print(response.text)
-        data = {"message":"Please verify that you searched for a location in the United States."}
+        data = {"message":"Please verify that you searched for a location in the United States.", "url": f"{url}"}
         valid_response = False
-        return data, valid_response, url
+        return data, valid_response
 
     return bbox, valid_response
 
