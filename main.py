@@ -64,7 +64,7 @@ def is_postal_code(query: str):
 @cache
 def request_location_api(query: str, factor: int = 0):
 
-    url = "https://us1.locationiq.com/v1/search/"
+    url = "https://us1.locationiq.com/v1/search"
     if is_postal_code(query):
         data = {
             'key': LOC_IQ_KEY,
@@ -83,10 +83,10 @@ def request_location_api(query: str, factor: int = 0):
         'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
     }
     response = requests.get(url, params=data, headers=headers)
-    res_data = json.loads(response.text)
+    data = json.loads(response.text)
     
-    if res_data != {'error': 'Unable to geocode'}:
-        bounding_box = res_data[0]['boundingbox']
+    if data != {'error': 'Unable to geocode'}:
+        bounding_box = data[0]['boundingbox']
         bbox = {
             'min_lat' : float(bounding_box[0]),
             'max_lat' : float(bounding_box[1]),
@@ -109,7 +109,7 @@ def request_location_api(query: str, factor: int = 0):
     
     else:
         print(response.text)
-        data = {"message":"Please verify that you searched for a location in the United States.", "url": f"{url}{data['q']}"}
+        data = {"message":"Please verify that you searched for a location in the United States.", "url": f"{url}"}
         valid_response = False
         return data, valid_response
 
@@ -118,7 +118,7 @@ def request_location_api(query: str, factor: int = 0):
 @cache
 def get_sensors_bbox_response(nwlong: float, nwlat: float, selong: float, selat: float):
     
-    base_url = "https://api.purpleair.com/v1/sensors"
+    base_url = "https://api.purpleair.com/v1/sensors/"
     fields = 'sensor_index,name,latitude,longitude,altitude,pm1.0,pm2.5,pm10.0,pm2.5_10minute,pm2.5_30minute,pm2.5_60minute'
     query = f'?fields={fields}&location_type=0'
     bbox = f'&nwlng={nwlong}&nwlat={nwlat}&selng={selong}&selat={selat}'
