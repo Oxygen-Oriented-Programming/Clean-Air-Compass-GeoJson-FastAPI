@@ -108,6 +108,7 @@ def request_location_api(query: str, factor: int = 0):
         valid_response = True
     
     else:
+        print(response.text)
         data = {"message":"Please verify that you searched for a location in the United States."}
         valid_response = False
         return data, valid_response
@@ -315,8 +316,13 @@ async def get_average_pollution(location: str):
 
     # parse the response from the sensors API into a geodataframe
     geo_df = parse_sensors_bbox_response(sensors_response)
-  
-    return geo_df['pm2.5_60minute'].mean()
+    pm25_sum = 0
+    valid_count = 0
+    for sensor_data in geo_df:
+        if sensor_data['pm2.5_60minute'] is not None:
+            pm25_sum += sensor_data['pm2.5_60minute']
+            valid_count += 1
+    return pm25_sum / valid_count
   
   else:
     return bbox
