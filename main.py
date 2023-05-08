@@ -85,7 +85,7 @@ def request_location_api(query: str, factor: int = 0):
     response = requests.get(url, params=data, headers=headers)
     res_data = json.loads(response.text)
     
-    if data != {'error': 'Unable to geocode'}:
+    if res_data != {'error': 'Unable to geocode'}:
         bounding_box = res_data[0]['boundingbox']
         bbox = {
             'min_lat' : float(bounding_box[0]),
