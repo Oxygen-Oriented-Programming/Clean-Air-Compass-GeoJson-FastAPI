@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import requests
@@ -18,6 +19,7 @@ app = FastAPI()
 # Allow all origins to access the API
 app.add_middleware(
     CORSMiddleware,
+    allow_credentials=True,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,7 +79,7 @@ def request_location_api(query: str, factor: int = 0):
     else:
         data = {
             'key': LOC_IQ_KEY,
-            'q': urllib.parse.quote(query),
+            'q': query,
             'format': 'json'
         }
         print(data)
@@ -246,8 +248,9 @@ def make_interpolated_polygons(sensor_data, expanded_search: bool = False):
     }
 
     return geojson
+
 @app.get("/points/{location}")
-async def get_map(location: str):
+async def get_map(location: str, response: Response):
   
   # call location IQ API to get bounding box for location
   bbox, valid_response = request_location_api(location)
@@ -300,9 +303,9 @@ async def get_map(location: str):
     # perform interpolation and return a grid of polygons with interpolated pm2.5 values
     response = make_interpolated_polygons(geo_df, expanded_search=expanded_search)
     
-    return response
+    return JSONResponse(content=response, status_code=200)
   else:
-    return bbox
+    return JSONResponse(content=bbox, status_code=404)
 
 
 @app.get("/average_pollution/{location}")
