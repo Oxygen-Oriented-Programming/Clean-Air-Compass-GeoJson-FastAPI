@@ -1,5 +1,4 @@
 # Clean Air Compass - Mapping API - Serverless Version
-# Clean Air Compass - Mapping API - Serverless Version
 
 An API to handle location requests from the Clean Air Compass frontend and return an interpolated map of air pollution (PM 2.5) in the form of a list of georeferenced polygons.
 
