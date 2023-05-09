@@ -83,10 +83,10 @@ def request_location_api(query: str, factor: int = 0):
             'format': 'json'
         }
         print(data)
-    headers = {
-        'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
-    }
-    response = requests.get(url, params=data, headers=headers)
+    # headers = {
+    #     'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
+    # }
+    response = requests.get(url, params=data) # headers=headers
     data = json.loads(response.text)
     
     if data != {'error': 'Unable to geocode'}:
