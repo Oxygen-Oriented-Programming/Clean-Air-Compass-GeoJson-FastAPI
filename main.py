@@ -12,6 +12,7 @@ from shapely.geometry import Point
 from shapely.geometry import mapping
 import functools
 import math
+import urllib
 
 app = FastAPI()
 
@@ -78,7 +79,7 @@ def request_location_api(query: str, factor: int = 0):
     else:
         data = {
             'key': LOC_IQ_KEY,
-            'q': query,
+            'q': urllib.parse.unquote(query),
             'format': 'json'
         }
     # headers = {

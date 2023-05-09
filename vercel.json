@@ -1,7 +1,6 @@
 {
   "builds": [
     {
-      "command": "uvicorn main:app",
       "src": "main.py",
       "use": "@vercel/python"
     }
