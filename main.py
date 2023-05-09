@@ -82,7 +82,6 @@ def request_location_api(query: str, factor: int = 0):
             'q': query,
             'format': 'json'
         }
-        print(data)
     # headers = {
     #     'Referer': 'https://clean-air-compass-mapping-api.vercel.app/'
     # }
