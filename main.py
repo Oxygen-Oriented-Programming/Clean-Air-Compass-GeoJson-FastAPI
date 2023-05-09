@@ -12,7 +12,6 @@ from shapely.geometry import Point
 from shapely.geometry import mapping
 import functools
 import math
-import urllib.parse
 
 app = FastAPI()
 
