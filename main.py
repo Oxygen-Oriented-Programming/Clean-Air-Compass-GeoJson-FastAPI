@@ -2,12 +2,6 @@ from fastapi import FastAPI, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import json
-from utils import (
-    request_location_api,
-    get_sensors_bbox_response,
-    parse_sensors_bbox_response,
-    make_interpolated_polygons
-)
 
 app = FastAPI()
 
@@ -18,7 +12,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/points/{location}")
 async def get_map(location: str, response: Response):
